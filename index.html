@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Whisker Whirl - The Ultimate Cat Chase!</title>
+  <style>
+    /* Basic styles - keeping things cute */
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap');
+    
+    body {
+      background: linear-gradient(135deg, #fff0f5, #f8e8f8);
+      font-family: 'Baloo 2', cursive;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16,5 C18,2 22,2 24,5 C26,8 24,12 22,14 C20,16 18,18 16,20 C14,18 12,16 10,14 C8,12 6,8 8,5 C10,2 14,2 16,5 Z" fill="%23ff6b9d"/></svg>') 16 16, auto;
+    }
+    
+    /* Background animation stuff */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M30,20 Q40,10 50,20 Q60,10 70,20 Q80,30 70,40 Q60,50 50,40 Q40,50 30,40 Q20,30 30,20 Z" fill="%23ffd6e7" opacity="0.1"/></svg>');
+      overflow: hidden;
+    }
+    
+    .bg-cat-element {
+      position: absolute;
+      animation: float 15s infinite linear;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    
+    @keyframes float {
+      0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.3; }
+      100% { transform: translate(100vw, -100vh) rotate(360deg); opacity: 0; }
+    }
+    
+    /* Floating cat elements */
+    .floating-cat {
+      position: absolute;
+      opacity: 0.2;
+      animation: floating 8s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+      font-size: 24px;
+    }
+    
+    @keyframes floating {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    
+    /* Main heading style */
+    h1 {
+      color: #ff6b9d;
+      font-size: 2.8rem;
+      text-shadow: 3px 3px 0px rgba(255, 182, 193, 0.5);
+      margin: 0.5em 0;
+      position: relative;
+      display: inline-block;
+      background: linear-gradient(135deg, #ffb6c1, #ffdfd3);
+      padding: 10px 30px;
+      border-radius: 50px;
+      box-shadow: 0 10px 20px rgba(255, 105, 180, 0.2);
+      border: 4px solid white;
+    }
+    
+    h1::before, h1::after {
+      content: '🐾';
+      position: absolute;
+      font-size: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    h1::before {
+      left: -15px;
+    }
+    
+    h1::after {
+      right: -15px;
+    }
+    
+    /* Game container */
+    #game-container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border: 8px solid #ff9e9e;
+      border-radius: 25px;
+      background-color: #fff9f9;
+      box-shadow: 0 15px 40px rgba(255, 158, 158, 0.4);
+      overflow: hidden;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path d="M30,10 Q40,5 50,10 Q55,20 50,30 Q40,35 30,30 Q25,20 30,10 Z" fill="%23ffd6d6" opacity="0.1"/></svg>');
+      transition: all 0.3s ease;
+    }
+    
+    /* Score display */
+    #score-display {
+      display: flex;
+      justify-content: space-between;
+      width: 500px;
+      margin: 20px 0;
+      font-size: 1.3rem;
+    }
+    
+    .score-box {
+      background: white;
+      padding: 12px 25px;
+      border-radius: 50px;
+      box-shadow: 0 8px 20px rgba(255, 182, 193, 0.3);
+      display: flex;
+      align-items: center;
+      border: 3px solid #ffb6c1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .score-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255,182,193,0.1), rgba(255,255,255,0.5));
+      z-index: 0;
+    }
+    
+    .score-box span {
+      margin-left: 8px;
+      font-weight: bold;
+      color: #ff6b9d;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Game over screen */
+    #game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px 40px;
+      border-radius: 25px;
+      text-align: center;
+      display: none;
+      z-index: 10;
+      box-shadow: 0 15px 40px rgba(255, 105, 180, 0.3);
+      border: 5px solid #ff9e9e;
+      max-width: 80%;
+      animation: popIn 0.3s ease-out;
+      background: linear-gradient(135deg, #fff9f9, #fff0f5);
+    }
+    
+    #game-over h2 {
+      color: #ff6b9d;
+      font-size: 2.5rem;
+      margin-top: 0;
+      text-shadow: 2px 2px 0px rgba(255, 182, 193, 0.5);
+    }
+    
+    #game-over p {
+      font-size: 1.3rem;
+      margin: 15px 0;
+      color: #8d6e63;
+    }
+    
+    /* Cat design */
+    .cat {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      z-index: 2;
+      transition: all 0.2s ease;
+    }
+    
+    .cat-head {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #ffb48f, #ff9a76);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      z-index: 2;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Cat ears */
+    .cat-ears {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    
+    .cat-ear {
+      position: absolute;
+      width: 16px;
+      height: 20px;
+      background: linear-gradient(135deg, #ffb48f, #ff9a76);
+      border-radius: 70% 70% 0 0;
+      z-index: -1;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    
+    .cat-ear.left {
+      left: -2px;
+      top: -8px;
+      transform: rotate(-30deg);
+    }
+    
+    .cat-ear.right {
+      right: -2px;
+      top: -8px;
+      transform: rotate(30deg);
+    }
+    
+    .cat-ear::before {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      width: 8px;
+      height: 8px;
+      background: #ff6b9d;
+      border-radius: 50% 50% 0 0;
+      opacity: 0.6;
+    }
+    
+    /* Cat face */
+    .cat-face {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      text-align: center;
+      z-index: 3;
+    }
+    
+    .cat-eyes {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    
+    .cat-eye {
+      width: 8px;
+      height: 10px;
+      background: #333;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cat-eye::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+    }
+    
+    .cat-mouth {
+      width: 12px;
+      height: 6px;
+      margin: 2px auto 0;
+      border-radius: 0 0 50% 50%;
+      background: #333;
+      position: relative;
+    }
+    
+    .cat-mouth::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 2px;
+      background: #333;
+    }
+    
+    /* Whiskers */
+    .cat-whiskers {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .whisker {
+      width: 8px;
+      height: 1px;
+      background: white;
+      box-shadow: 0 0 2px white;
+    }
+    
+    /* Cat body */
+    .cat-body {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #ffb48f, #ff9a76);
+      border-radius: 50%;
+      z-index: 1;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+    
+    /* Tail animation */
+    .cat-tail {
+      position: absolute;
+      width: 24px;
+      height: 12px;
+      background: linear-gradient(135deg, #ffb48f, #ff9a76);
+      border-radius: 12px 0 0 12px;
+      z-index: 0;
+      transform-origin: left center;
+      animation: wag 0.3s infinite alternate;
+    }
+    
+    @keyframes wag {
+      0% { transform: rotate(-20deg); }
+      100% { transform: rotate(20deg); }
+    }
+    
+    /* Food */
+    .food {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      z-index: 1;
+      animation: 
+        wiggle 2s infinite ease-in-out,
+        pulse 1.5s infinite alternate;
+      transition: transform 0.3s ease;
+    }
+    
+    .food-body {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 30%, #a1887f, #795548);
+      border-radius: 50% 50% 40% 60%;
+      box-shadow: 
+        0 3px 8px rgba(0,0,0,0.3),
+        inset 0 -4px 6px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .food-body::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 6px;
+      height: 6px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+    }
+    
+    .food-body::after {
+      content: '🐭';
+      position: absolute;
+      font-size: 10px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: sparkle 1.5s infinite;
+    }
+    
+    .food-bite {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fff9f9;
+      border-radius: 50%;
+      top: 2px;
+      right: 2px;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s ease;
+    }
+    
+    .food-eaten .food-bite {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+    
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes sparkle {
+      0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+    }
+    
+    /* Powerups */
+    .powerup {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, #fff, #ffeb3b);
+      border-radius: 50%;
+      z-index: 1;
+      animation: 
+        pulse 1s infinite ease-in-out,
+        float 3s infinite ease-in-out;
+      box-shadow: 0 0 15px #ffeb3b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    /* Powerup effects */
+    @keyframes rainbow-border {
+      0% { box-shadow: 0 0 15px 5px #ff9a9e; }
+      25% { box-shadow: 0 0 15px 5px #ffd6a5; }
+      50% { box-shadow: 0 0 15px 5px #fdffb6; }
+      75% { box-shadow: 0 0 15px 5px #caffbf; }
+      100% { box-shadow: 0 0 15px 5px #9bf6ff; }
+    }
+    
+    @keyframes glow {
+      0% { filter: brightness(100%); }
+      100% { filter: brightness(150%); }
+    }
+    
+    /* Speed lines */
+    .speed-line {
+      position: absolute;
+      background: white;
+      width: 30px;
+      height: 2px;
+      opacity: 0.7;
+      transform-origin: left center;
+      z-index: 0;
+      animation: speed-line-fade 1s forwards;
+    }
+    
+    @keyframes speed-line-fade {
+      0% { opacity: 0.7; transform: scaleX(1); }
+      100% { opacity: 0; transform: scaleX(3); }
+    }
+    
+    /* Halo effect */
+    .halo {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.7), transparent 70%);
+      transform: translate(-10px, -10px);
+      z-index: 1;
+      animation: halo-pulse 2s infinite;
+    }
+    
+    @keyframes halo-pulse {
+      0%, 100% { opacity: 0.7; transform: translate(-10px, -10px) scale(1); }
+      50% { opacity: 1; transform: translate(-10px, -10px) scale(1.2); }
+    }
+    
+    /* Obstacles */
+    .obstacle {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background-color: #8d6e63;
+      border-radius: 10px;
+      z-index: 1;
+      box-shadow: 
+        inset 0 5px 10px rgba(0,0,0,0.2),
+        0 5px 10px rgba(0,0,0,0.15);
+      animation: wobble 3s infinite ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    @keyframes wobble {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+    
+    /* Buttons */
+    button {
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      color: white;
+      border: none;
+      padding: 15px 35px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 15px;
+      font-family: 'Baloo 2', cursive;
+      box-shadow: 
+        0 8px 20px rgba(255, 105, 180, 0.4),
+        inset 0 -3px 5px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      border: 3px solid rgba(255,255,255,0.3);
+    }
+    
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: all 0.5s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 
+        0 12px 30px rgba(255, 105, 180, 0.5),
+        inset 0 -3px 5px rgba(0,0,0,0.1);
+    }
+    
+    button:hover::before {
+      left: 100%;
+    }
+    
+    button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 
+        0 5px 15px rgba(255, 105, 180, 0.4),
+        inset 0 3px 5px rgba(0,0,0,0.1);
+    }
+    
+    button span {
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Particle Effects */
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 5;
+      animation: particle-fade 1s forwards;
+    }
+    
+    @keyframes particle-fade {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
+    
+    /* Paw prints */
+    .paw-print {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: rgba(255,182,193,0.7);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      animation: paw-fade 1.5s forwards;
+    }
+    
+    .paw-print::before {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      top: 2px;
+      left: 6px;
+    }
+    
+    .paw-print::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 50%;
+      bottom: 2px;
+      left: 4px;
+    }
+    
+    @keyframes paw-fade {
+      0% { opacity: 0.8; transform: scale(0.5); }
+      100% { opacity: 0; transform: scale(1.2); }
+    }
+    
+    /* Confetti */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      opacity: 0;
+      z-index: 100;
+    }
+    
+    /* Controls Hint */
+    #controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 12px 25px;
+      border-radius: 50px;
+      box-shadow: 0 8px 20px rgba(255, 182, 193, 0.3);
+      font-size: 1rem;
+      opacity: 0.8;
+      border: 2px solid #ffb6c1;
+    }
+    
+    /* Sound toggle */
+    #sound-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      cursor: pointer;
+      z-index: 100;
+      border: 3px solid #ffb6c1;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    #sound-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+    }
+    
+    /* Level Themes */
+    .theme-1 { background: #fff0f5; }
+    .theme-2 { background: #f0fff5; }
+    .theme-3 { background: #f0f5ff; }
+    .theme-4 { background: #fff5f0; }
+    
+    /* Extra visual stuff */
+    .cat::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 10px;
+      width: 20px;
+      height: 5px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 50%;
+      filter: blur(3px);
+      z-index: -1;
+    }
+    
+    .food:hover {
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 8px rgba(255,105,180,0.8));
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Floating cat elements */
+    .floating-cat-element {
+      position: absolute;
+      font-size: 24px;
+      color: rgba(255,105,180,0.3);
+      animation: float-up 15s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    @keyframes float-up {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.5; }
+      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+    }
+    
+    /* Glow effect on score */
+    .score-box span {
+      animation: text-glow 2s infinite alternate;
+    }
+    
+    @keyframes text-glow {
+      0% { text-shadow: 0 0 5px rgba(255,105,180,0.5); }
+      100% { text-shadow: 0 0 10px rgba(255,105,180,0.8); }
+    }
+    
+    /* Cat eye blink */
+    @keyframes blink {
+      0%, 100% { height: 10px; }
+      50% { height: 2px; }
+    }
+    
+    .cat-eye {
+      animation: blink 3s infinite;
+    }
+    
+    /* Game container glow */
+    #game-container:hover {
+      box-shadow: 0 20px 50px rgba(255, 158, 158, 0.6);
+      transform: translateY(-5px);
+    }
+    
+    /* Frame around game */
+    .game-frame {
+      position: relative;
+      padding: 20px;
+      background: linear-gradient(135deg, #ffdfd3, #f8c8dc);
+      border-radius: 35px;
+      box-shadow: 0 20px 50px rgba(255, 158, 158, 0.4);
+      margin-bottom: 20px;
+    }
+    
+    .game-frame::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 5px dashed rgba(255,255,255,0.5);
+      border-radius: 25px;
+      pointer-events: none;
+    }
+    
+    /* Decorative paws */
+    .paw-decoration {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle, #ffb6c1, #ff9a9e);
+      border-radius: 50%;
+      opacity: 0.3;
+      z-index: -1;
+    }
+    
+    /* Creator credit */
+    .creator-credit {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      font-size: 1rem;
+      color: #ff6b9d;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px 15px;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+      font-weight: bold;
+      z-index: 100;
+      border: 2px solid #ffb6c1;
+      animation: 
+        creator-float 3s ease-in-out infinite,
+        creator-glow 2s infinite alternate;
+      transform-style: preserve-3d;
+      backdrop-filter: blur(2px);
+    }
+    
+    .creator-credit::before {
+      content: '🎮';
+      margin-right: 8px;
+      display: inline-block;
+      animation: creator-spin 5s linear infinite;
+    }
+    
+    @keyframes creator-float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(1deg); }
+    }
+    
+    @keyframes creator-glow {
+      0% { 
+        text-shadow: 0 0 5px rgba(255,107,158,0.5);
+        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+      }
+      100% { 
+        text-shadow: 0 0 10px rgba(255,107,158,0.8);
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+      }
+    }
+    
+    @keyframes creator-spin {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.2); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation" id="bg-animation"></div>
+  
+  <div id="sound-toggle">🔊</div>
+  
+  <h1>🐱 Whisker Whirl - The Ultimate Cat Chase! 🐭</h1>
+  
+  <div id="score-display">
+    <div class="score-box">Score: <span id="score">0</span></div>
+    <div class="score-box">Level: <span id="level">1</span></div>
+  </div>
+  
+  <div class="game-frame">
+    <div id="game-container"></div>
+  </div>
+  
+  <button id="restart"><span>Restart Game 🎮</span></button>
+
+  <div id="game-over">
+    <h2>Game Over! 😿</h2>
+    <p id="final-score">Your score: 0</p>
+    <p id="high-score">High score: 0</p>
+    <button id="play-again"><span>Play Again 🐾</span></button>
+  </div>
+  
+  <div id="controls-hint">Use arrow keys to move | Press 'A' for AI mode</div>
+  
+  <div class="creator-credit">Created by Harshjeet Tilante</div>
+
+  <script>
+    // Game sounds
+    const sounds = {
+      eat: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-cat-eating-1543.mp3'),
+      powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3'),
+      gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-sad-cat-meow-94.mp3'),
+      levelUp: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3'),
+      meow: [
+        new Audio('https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-117.mp3'),
+        new Audio('https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-118.mp3'),
+        new Audio('https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-119.mp3')
+      ],
+      background: new Audio('https://assets.mixkit.co/music/preview/mixkit-happy-kids-1381.mp3'),
+      move: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3')
+    };
+    
+    // Loop background music
+    sounds.background.loop = true;
+    sounds.background.volume = 0.3;
+    
+    // Game variables
+    let soundEnabled = true;
+    let catBody = [];
+    let direction = 'right';
+    let nextDirection = 'right';
+    let food = null;
+    let powerup = null;
+    let obstacles = [];
+    let score = 0;
+    let level = 1;
+    let speed = 150;
+    let powerupActive = false;
+    let powerupTimer = null;
+    let gameInterval = null;
+    let gameContainer = document.getElementById('game-container');
+    let containerWidth = gameContainer.offsetWidth;
+    let containerHeight = gameContainer.offsetHeight;
+    let segmentSize = 36;
+    let aiPathfinding = false;
+    let highScore = localStorage.getItem('catHighScore') || 0;
+    let gameOver = false;
+    
+    // Start a new game
+    function initGame() {
+      clearInterval(gameInterval);
+      if (powerupTimer) clearTimeout(powerupTimer);
+      gameContainer.innerHTML = '';
+      catBody = [];
+      obstacles = [];
+      score = 0;
+      level = 1;
+      speed = 150;
+      powerupActive = false;
+      gameOver = false;
+      direction = 'right';
+      nextDirection = 'right';
+      
+      containerWidth = gameContainer.offsetWidth;
+      containerHeight = gameContainer.offsetHeight;
+      
+      updateScore();
+      updateLevel();
+      
+      document.getElementById('game-over').style.display = 'none';
+      
+      createAnimatedBackground();
+      createFloatingElements();
+      createFloatingCatElements();
+      createPawDecorations();
+      
+      updateBackgroundTheme(level);
+      
+      // Create initial cat segments
+      for (let i = 0; i < 3; i++) {
+        addCatSegment(150 - (i * segmentSize), 150);
+      }
+      
+      createFood();
+      createObstacles();
+      
+      gameInterval = setInterval(movecat, speed);
+      
+      updateLighting();
+      createConfetti(containerWidth/2, containerHeight/2, 20);
+      
+      if (soundEnabled) {
+        sounds.background.currentTime = 0;
+        sounds.background.play();
+      }
+      
+      if (soundEnabled && Math.random() > 0.5) {
+        playRandomMeow();
+      }
+    }
+    
+    // Create background elements
+    function createAnimatedBackground() {
+      const bg = document.getElementById('bg-animation');
+      bg.innerHTML = '';
+      
+      for (let i = 0; i < 20; i++) {
+        const element = document.createElement('div');
+        element.className = 'bg-cat-element';
+        
+        if (Math.random() > 0.5) {
+          element.innerHTML = '🐾';
+        } else {
+          element.innerHTML = '🐱';
+        }
+        
+        element.style.fontSize = (20 + Math.random() * 30) + 'px';
+        element.style.left = Math.random() * 100 + 'vw';
+        element.style.top = Math.random() * 100 + 'vh';
+        element.style.animationDelay = Math.random() * 10 + 's';
+        element.style.animationDuration = (15 + Math.random() * 25) + 's';
+        bg.appendChild(element);
+      }
+    }
+    
+    // Add floating elements
+    function createFloatingElements() {
+      const shapes = ['🐱', '🐾', '🌸', '🌟', '🧶', '🍗', '🥛'];
+      for (let i = 0; i < 20; i++) {
+        const element = document.createElement('div');
+        element.className = 'floating-cat';
+        element.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+        element.style.left = Math.random() * 100 + 'vw';
+        element.style.top = Math.random() * 100 + 'vh';
+        element.style.fontSize = (20 + Math.random() * 30) + 'px';
+        element.style.animationDelay = Math.random() * 5 + 's';
+        document.body.appendChild(element);
+      }
+    }
+    
+    // Add floating cat elements
+    function createFloatingCatElements() {
+      const catElements = ['🐱', '🐈', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'];
+      for (let i = 0; i < 15; i++) {
+        const element = document.createElement('div');
+        element.className = 'floating-cat-element';
+        element.textContent = catElements[Math.floor(Math.random() * catElements.length)];
+        element.style.left = Math.random() * 100 + 'vw';
+        element.style.fontSize = (20 + Math.random() * 40) + 'px';
+        element.style.animationDuration = (15 + Math.random() * 30) + 's';
+        element.style.animationDelay = Math.random() * 15 + 's';
+        document.body.appendChild(element);
+      }
+    }
+    
+    // Create paw decorations
+    function createPawDecorations() {
+      for (let i = 0; i < 10; i++) {
+        const paw = document.createElement('div');
+        paw.className = 'paw-decoration';
+        paw.style.left = Math.random() * 100 + 'vw';
+        paw.style.top = Math.random() * 100 + 'vh';
+        paw.style.width = (30 + Math.random() * 50) + 'px';
+        paw.style.height = paw.style.width;
+        paw.style.opacity = 0.1 + Math.random() * 0.2;
+        document.body.appendChild(paw);
+      }
+    }
+    
+    // Add a cat segment
+    function addCatSegment(x, y) {
+      let segment;
+      
+      if (catBody.length === 0) {
+        segment = document.createElement('div');
+        segment.className = 'cat';
+        segment.style.left = x + 'px';
+        segment.style.top = y + 'px';
+        
+        const head = document.createElement('div');
+        head.className = 'cat-head';
+        segment.appendChild(head);
+        
+        const ears = document.createElement('div');
+        ears.className = 'cat-ears';
+        ears.innerHTML = `
+          <div class="cat-ear left"></div>
+          <div class="cat-ear right"></div>
+        `;
+        segment.appendChild(ears);
+        
+        const face = document.createElement('div');
+        face.className = 'cat-face';
+        face.innerHTML = `
+          <div class="cat-eyes">
+            <div class="cat-eye"></div>
+            <div class="cat-eye"></div>
+          </div>
+          <div class="cat-mouth"></div>
+          <div class="cat-whiskers">
+            <div class="whisker"></div>
+            <div class="whisker"></div>
+            <div class="whisker"></div>
+            <div class="whisker"></div>
+          </div>
+        `;
+        segment.appendChild(face);
+        
+        gameContainer.appendChild(segment);
+      } 
+      else if (catBody.length === 1) {
+        segment = document.createElement('div');
+        segment.className = 'cat-body';
+        segment.style.left = x + 'px';
+        segment.style.top = y + 'px';
+        
+        const tail = document.createElement('div');
+        tail.className = 'cat-tail';
+        segment.appendChild(tail);
+        
+        gameContainer.appendChild(segment);
+      } 
+      else {
+        segment = document.createElement('div');
+        segment.className = 'cat-body';
+        segment.style.left = x + 'px';
+        segment.style.top = y + 'px';
+        gameContainer.appendChild(segment);
+      }
+      
+      catBody.push({
+        element: segment,
+        x: x,
+        y: y
+      });
+    }
+    
+    // Create food at random position
+    function createFood() {
+      if (food && food.element && food.element.parentNode) {
+        gameContainer.removeChild(food.element);
+      }
+      
+      let x, y, validPosition;
+      do {
+        validPosition = true;
+        x = Math.floor(Math.random() * (containerWidth - 20));
+        y = Math.floor(Math.random() * (containerHeight - 20));
+        
+        for (let segment of catBody) {
+          if (Math.abs(segment.x - x) < 30 && Math.abs(segment.y - y) < 30) {
+            validPosition = false;
+            break;
+          }
+        }
+        
+        for (let obstacle of obstacles) {
+          if (Math.abs(obstacle.x - x) < 35 && Math.abs(obstacle.y - y) < 35) {
+            validPosition = false;
+            break;
+          }
+        }
+      } while (!validPosition);
+      
+      let foodElement = document.createElement('div');
+      foodElement.className = 'food';
+      foodElement.style.left = x + 'px';
+      foodElement.style.top = y + 'px';
+      
+      const foodBody = document.createElement('div');
+      foodBody.className = 'food-body';
+      foodElement.appendChild(foodBody);
+      
+      const foodBite = document.createElement('div');
+      foodBite.className = 'food-bite';
+      foodElement.appendChild(foodBite);
+      
+      gameContainer.appendChild(foodElement);
+      
+      food = {
+        element: foodElement,
+        x: x,
+        y: y
+      };
+      
+      if (Math.random() < 0.3) {
+        createPowerup();
+      }
+    }
+    
+    // Create powerup
+    function createPowerup() {
+      if (powerup && powerup.element && powerup.element.parentNode) {
+        gameContainer.removeChild(powerup.element);
+      }
+      
+      let x, y, validPosition;
+      do {
+        validPosition = true;
+        x = Math.floor(Math.random() * (containerWidth - 20));
+        y = Math.floor(Math.random() * (containerHeight - 20));
+        
+        for (let segment of catBody) {
+          if (Math.abs(segment.x - x) < 30 && Math.abs(segment.y - y) < 30) {
+            validPosition = false;
+            break;
+          }
+        }
+        
+        if (food && Math.abs(food.x - x) < 30 && Math.abs(food.y - y) < 30) {
+          validPosition = false;
+        }
+        
+        for (let obstacle of obstacles) {
+          if (Math.abs(obstacle.x - x) < 35 && Math.abs(obstacle.y - y) < 35) {
+            validPosition = false;
+            break;
+          }
+        }
+      } while (!validPosition);
+      
+      let powerupElement = document.createElement('div');
+      powerupElement.className = 'powerup';
+      powerupElement.style.left = x + 'px';
+      powerupElement.style.top = y + 'px';
+      
+      const powerupIcon = document.createElement('div');
+      powerupIcon.textContent = '🐟';
+      powerupElement.appendChild(powerupIcon);
+      
+      gameContainer.appendChild(powerupElement);
+      
+      powerup = {
+        element: powerupElement,
+        x: x,
+        y: y,
+        type: Math.random() < 0.5 ? 'speed' : 'invincible'
+      };
+      
+      setTimeout(() => {
+        if (powerup && powerup.element && powerup.element.parentNode) {
+          gameContainer.removeChild(powerup.element);
+          powerup = null;
+        }
+      }, 10000);
+    }
+    
+    // Create obstacles
+    function createObstacles() {
+      for (let obstacle of obstacles) {
+        if (obstacle.element && obstacle.element.parentNode) {
+          gameContainer.removeChild(obstacle.element);
+        }
+      }
+      obstacles = [];
+      
+      let numObstacles = Math.min(3 + level, 10);
+      
+      for (let i = 0; i < numObstacles; i++) {
+        let x, y, validPosition;
+        do {
+          validPosition = true;
+          x = Math.floor(Math.random() * (containerWidth - 30));
+          y = Math.floor(Math.random() * (containerHeight - 30));
+          
+          for (let segment of catBody) {
+            if (Math.abs(segment.x - x) < 50 && Math.abs(segment.y - y) < 50) {
+              validPosition = false;
+              break;
+            }
+          }
+          
+          if (food && Math.abs(food.x - x) < 40 && Math.abs(food.y - y) < 40) {
+            validPosition = false;
+          }
+          
+          for (let obstacle of obstacles) {
+            if (Math.abs(obstacle.x - x) < 40 && Math.abs(obstacle.y - y) < 40) {
+              validPosition = false;
+              break;
+            }
+          }
+        } while (!validPosition);
+        
+        let obstacleElement = document.createElement('div');
+        obstacleElement.className = 'obstacle';
+        obstacleElement.style.left = x + 'px';
+        obstacleElement.style.top = y + 'px';
+        
+        const obstacleTypes = ['🚧', '💧', '🚫', '🌵', '🔥'];
+        const obstacleType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        obstacleElement.textContent = obstacleType;
+        
+        gameContainer.appendChild(obstacleElement);
+        
+        obstacles.push({
+          element: obstacleElement,
+          x: x,
+          y: y
+        });
+      }
+    }
+    
+    // Move the cat
+    function movecat() {
+      if (soundEnabled) {
+        sounds.move.currentTime = 0;
+        sounds.move.play();
+      }
+      
+      if (aiPathfinding) {
+        aiMove();
+      }
+      
+      direction = nextDirection;
+      
+      let headX = catBody[0].x;
+      let headY = catBody[0].y;
+      
+      switch(direction) {
+        case 'up':
+          headY -= segmentSize;
+          break;
+        case 'down':
+          headY += segmentSize;
+          break;
+        case 'left':
+          headX -= segmentSize;
+          break;
+        case 'right':
+          headX += segmentSize;
+          break;
+      }
+      
+      createMovementParticles(catBody[0].x, catBody[0].y, direction);
+      createPawPrints(catBody[0].x, catBody[0].y);
+      
+      if (headX < 0 || headX >= containerWidth - 10 || 
+          headY < 0 || headY >= containerHeight - 10) {
+        if (!powerupActive) {
+          endGame();
+          return;
+        }
+        if (headX < 0) headX = containerWidth - 30;
+        if (headY < 0) headY = containerHeight - 30;
+        if (headX >= containerWidth - 10) headX = 0;
+        if (headY >= containerHeight - 10) headY = 0;
+      }
+      
+      for (let obstacle of obstacles) {
+        if (Math.abs(headX - obstacle.x) < 25 && Math.abs(headY - obstacle.y) < 25) {
+          if (!powerupActive) {
+            endGame();
+            return;
+          }
+        }
+      }
+      
+      for (let i = 1; i < catBody.length; i++) {
+        if (Math.abs(headX - catBody[i].x) < 15 && Math.abs(headY - catBody[i].y) < 15) {
+          if (!powerupActive) {
+            endGame();
+            return;
+          }
+        }
+      }
+      
+      let oldHead = catBody[0].element;
+      oldHead.className = 'cat-body';
+      
+      let newHead = document.createElement('div');
+      newHead.className = 'cat';
+      newHead.style.left = headX + 'px';
+      newHead.style.top = headY + 'px';
+      
+      const head = document.createElement('div');
+      head.className = 'cat-head';
+      newHead.appendChild(head);
+      
+      const ears = document.createElement('div');
+      ears.className = 'cat-ears';
+      ears.innerHTML = `
+        <div class="cat-ear left"></div>
+        <div class="cat-ear right"></div>
+      `;
+      newHead.appendChild(ears);
+      
+      const face = document.createElement('div');
+      face.className = 'cat-face';
+      face.innerHTML = `
+        <div class="cat-eyes">
+          <div class="cat-eye"></div>
+          <div class="cat-eye"></div>
+        </div>
+        <div class="cat-mouth"></div>
+        <div class="cat-whiskers">
+          <div class="whisker"></div>
+          <div class="whisker"></div>
+          <div class="whisker"></div>
+          <div class="whisker"></div>
+        </div>
+      `;
+      newHead.appendChild(face);
+      
+      gameContainer.appendChild(newHead);
+      
+      catBody.unshift({
+        element: newHead,
+        x: headX,
+        y: headY
+      });
+      
+      if (food && Math.abs(headX - food.x) < 20 && Math.abs(headY - food.y) < 20) {
+        food.element.classList.add('food-eaten');
+        if (soundEnabled) {
+          sounds.eat.currentTime = 0;
+          sounds.eat.play();
+        }
+        
+        setTimeout(() => {
+          if (food && food.element && food.element.parentNode) {
+            gameContainer.removeChild(food.element);
+          }
+          createFood();
+        }, 300);
+        
+        score += 10 * level;
+        updateScore();
+        
+        if (score >= level * 100) {
+          levelUp();
+        }
+        
+        createConfetti(headX, headY, 10);
+      } else {
+        let tail = catBody.pop();
+        if (tail.element && tail.element.parentNode) {
+          gameContainer.removeChild(tail.element);
+        }
+      }
+      
+      if (powerup && Math.abs(headX - powerup.x) < 20 && Math.abs(headY - powerup.y) < 20) {
+        activatePowerup(powerup.type);
+        if (powerup.element && powerup.element.parentNode) {
+          gameContainer.removeChild(powerup.element);
+        }
+        powerup = null;
+        
+        if (soundEnabled) {
+          sounds.powerup.currentTime = 0;
+          sounds.powerup.play();
+        }
+        
+        createConfetti(headX, headY, 15);
+      }
+    }
+    
+    // Activate powerup
+    function activatePowerup(type) {
+      powerupActive = true;
+      
+      if (powerupTimer) {
+        clearTimeout(powerupTimer);
+      }
+      
+      if (type === 'speed') {
+        clearInterval(gameInterval);
+        let oldSpeed = speed;
+        speed = speed / 2;
+        gameInterval = setInterval(movecat, speed);
+        
+        catBody[0].element.style.animation = 'wiggle 0.1s infinite, rainbow-border 0.5s infinite';
+        catBody[0].element.style.boxShadow = '0 0 15px 5px #ff9a9e';
+        
+        for (let i = 0; i < 3; i++) {
+          const line = document.createElement('div');
+          line.className = 'speed-line';
+          gameContainer.appendChild(line);
+          positionSpeedLine(line, catBody[0].element);
+        }
+        
+        powerupTimer = setTimeout(() => {
+          clearInterval(gameInterval);
+          speed = oldSpeed;
+          gameInterval = setInterval(movecat, speed);
+          powerupActive = false;
+          catBody[0].element.style.animation = '';
+          catBody[0].element.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        }, 5000);
+      } 
+      else if (type === 'invincible') {
+        catBody[0].element.style.animation = 'pulse 0.5s infinite, glow 1s infinite alternate';
+        catBody[0].element.style.boxShadow = '0 0 20px 10px gold';
+        
+        const halo = document.createElement('div');
+        halo.className = 'halo';
+        catBody[0].element.parentNode.insertBefore(halo, catBody[0].element);
+        halo.style.left = catBody[0].element.style.left;
+        halo.style.top = catBody[0].element.style.top;
+        
+        powerupTimer = setTimeout(() => {
+          catBody[0].element.style.animation = '';
+          catBody[0].element.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+          if (halo.parentNode) halo.parentNode.removeChild(halo);
+          powerupActive = false;
+        }, 5000);
+      }
+    }
+    
+    // Position speed lines
+    function positionSpeedLine(line, head) {
+      const headRect = head.getBoundingClientRect();
+      const containerRect = gameContainer.getBoundingClientRect();
+      
+      const x = headRect.left - containerRect.left;
+      const y = headRect.top - containerRect.top;
+      
+      let angle;
+      switch(direction) {
+        case 'up': angle = Math.PI; break;
+        case 'down': angle = 0; break;
+        case 'left': angle = Math.PI/2; break;
+        case 'right': angle = -Math.PI/2; break;
+      }
+      
+      angle += (Math.random() - 0.5) * Math.PI/4;
+      
+      line.style.left = (x + 15) + 'px';
+      line.style.top = (y + 15) + 'px';
+      line.style.transform = `rotate(${angle}rad)`;
+    }
+    
+    // Simple AI movement
+    function aiMove() {
+      let headX = catBody[0].x;
+      let headY = catBody[0].y;
+      
+      if (!food) return;
+      
+      let bestDir = '';
+      let bestScore = -Infinity;
+      
+      let possibleDirs = ['up', 'down', 'left', 'right'];
+      
+      if (direction === 'up') possibleDirs = possibleDirs.filter(d => d !== 'down');
+      if (direction === 'down') possibleDirs = possibleDirs.filter(d => d !== 'up');
+      if (direction === 'left') possibleDirs = possibleDirs.filter(d => d !== 'right');
+      if (direction === 'right') possibleDirs = possibleDirs.filter(d => d !== 'left');
+      
+      for (let dir of possibleDirs) {
+        let newX = headX;
+        let newY = headY;
+        
+        switch(dir) {
+          case 'up': newY -= segmentSize; break;
+          case 'down': newY += segmentSize; break;
+          case 'left': newX -= segmentSize; break;
+          case 'right': newX += segmentSize; break;
+        }
+        
+        let valid = true;
+        
+        if (newX < 0 || newX >= containerWidth - 10 || 
+            newY < 0 || newY >= containerHeight - 10) {
+          if (!powerupActive) valid = false;
+        }
+        
+        for (let i = 1; i < catBody.length; i++) {
+          if (Math.abs(newX - catBody[i].x) < 15 && Math.abs(newY - catBody[i].y) < 15) {
+            if (!powerupActive) {
+              valid = false;
+              break;
+            }
+          }
+        }
+        
+        for (let obstacle of obstacles) {
+          if (Math.abs(newX - obstacle.x) < 25 && Math.abs(newY - obstacle.y) < 25) {
+            if (!powerupActive) {
+              valid = false;
+              break;
+            }
+          }
+        }
+        
+        if (valid) {
+          let score = -Math.sqrt(Math.pow(newX - food.x, 2) + Math.pow(newY - food.y, 2));
+          if (dir === direction) score += 5;
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestDir = dir;
+          }
+        }
+      }
+      
+      if (bestDir) {
+        nextDirection = bestDir;
+      }
+    }
+    
+    // Level up
+    function levelUp() {
+      level++;
+      updateLevel();
+      
+      clearInterval(gameInterval);
+      speed = Math.max(50, 150 - (level * 10));
+      gameInterval = setInterval(movecat, speed);
+      
+      createObstacles();
+      updateBackgroundTheme(level);
+      
+      if (soundEnabled) {
+        sounds.levelUp.currentTime = 0;
+        sounds.levelUp.play();
+      }
+      createConfetti(containerWidth/2, containerHeight/2, 30);
+    }
+    
+    // Change background theme
+    function updateBackgroundTheme(level) {
+      const themes = [
+        { bg: '#fff0f5', pattern: 'linear-gradient(45deg, #ffe4e1 25%, transparent 25%)' },
+        { bg: '#f0fff5', pattern: 'linear-gradient(45deg, #e1ffe4 25%, transparent 25%)' },
+        { bg: '#f0f5ff', pattern: 'linear-gradient(45deg, #e1e4ff 25%, transparent 25%)' },
+        { bg: '#fff5f0', pattern: 'linear-gradient(45deg, #ffe4e1 25%, transparent 25%)' }
+      ];
+      
+      const theme = themes[(level - 1) % themes.length];
+      gameContainer.style.background = `
+        ${theme.bg},
+        ${theme.pattern},
+        ${theme.pattern} -50px -50px
+      `;
+      gameContainer.style.backgroundSize = '100px 100px';
+    }
+    
+    // Update lighting
+    function updateLighting() {
+      gameContainer.style.boxShadow = `
+        inset ${Math.sin(Date.now()/1000)*5}px ${Math.cos(Date.now()/1000)*5}px 20px rgba(255,182,193,0.5),
+        0 0 30px rgba(255,105,180,0.3)
+      `;
+      requestAnimationFrame(updateLighting);
+    }
+    
+    // Create movement particles
+    function createMovementParticles(x, y, direction) {
+      const colors = ['#ffb6c1', '#ffd6d6', '#ffecf1', '#ffffff'];
+      for (let i = 0; i < 5; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        gameContainer.appendChild(particle);
+        
+        let angle;
+        switch(direction) {
+          case 'up': angle = Math.PI; break;
+          case 'down': angle = 0; break;
+          case 'left': angle = Math.PI/2; break;
+          case 'right': angle = -Math.PI/2; break;
+        }
+        
+        angle += (Math.random() - 0.5) * Math.PI/4;
+        
+        const distance = 10 + Math.random() * 20;
+        const duration = 300 + Math.random() * 200;
+        
+        const startTime = Date.now();
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = elapsed / duration;
+          
+          if (progress < 1) {
+            const currentDist = distance * (1 - progress);
+            particle.style.transform = `translate(${Math.cos(angle) * currentDist}px, ${Math.sin(angle) * currentDist}px)`;
+            particle.style.opacity = 1 - progress;
+            requestAnimationFrame(animate);
+          } else {
+            particle.remove();
+          }
+        };
+        
+        requestAnimationFrame(animate);
+      }
+    }
+    
+    // Create paw prints
+    function createPawPrints(x, y) {
+      if (Math.random() > 0.7) {
+        const paw = document.createElement('div');
+        paw.className = 'paw-print';
+        paw.style.left = x + 'px';
+        paw.style.top = y + 'px';
+        gameContainer.appendChild(paw);
+        
+        setTimeout(() => {
+          paw.remove();
+        }, 1500);
+      }
+    }
+    
+    // Create confetti
+    function createConfetti(x, y, amount, isSad = false) {
+      const colors = isSad ? ['#888', '#aaa', '#ccc'] : ['#ff6b9d', '#ffb48f', '#ffeb3b', '#a1887f', '#8d6e63'];
+      const shapes = isSad ? ['😿', '💔'] : ['🐱', '🐾', '🌸', '🌟', '🧶'];
+      
+      for (let i = 0; i < amount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = x + 'px';
+        confetti.style.top = y + 'px';
+        
+        if (Math.random() > 0.5) {
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        } else {
+          confetti.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+        }
+        
+        confetti.style.opacity = '1';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        gameContainer.appendChild(confetti);
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 3 + Math.random() * 3;
+        const rotation = Math.random() * 360;
+        const rotationSpeed = (Math.random() - 0.5) * 20;
+        
+        let posX = x;
+        let posY = y;
+        let currentRotation = rotation;
+        let opacity = 1;
+        let scale = 0.5 + Math.random() * 1;
+        let size = 5 + Math.random() * 10;
+        
+        confetti.style.width = size + 'px';
+        confetti.style.height = size + 'px';
+        confetti.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+        
+        const animate = () => {
+          posX += Math.cos(angle) * velocity;
+          posY += Math.sin(angle) * velocity + 1;
+          currentRotation += rotationSpeed;
+          opacity -= 0.01;
+          scale *= 0.99;
+          
+          confetti.style.left = posX + 'px';
+          confetti.style.top = posY + 'px';
+          confetti.style.opacity = opacity;
+          confetti.style.transform = `rotate(${currentRotation}deg) scale(${scale})`;
+          
+          if (opacity > 0) {
+            requestAnimationFrame(animate);
+          } else {
+            confetti.remove();
+          }
+        };
+        
+        requestAnimationFrame(animate);
+      }
+    }
+    
+    // Play random meow sound
+    function playRandomMeow() {
+      const randomMeow = sounds.meow[Math.floor(Math.random() * sounds.meow.length)];
+      randomMeow.currentTime = 0;
+      randomMeow.play();
+    }
+    
+    // Update score display
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+    }
+    
+    // Update level display
+    function updateLevel() {
+      document.getElementById('level').textContent = level;
+    }
+    
+    // End game
+    function endGame() {
+      clearInterval(gameInterval);
+      gameOver = true;
+      
+      sounds.background.pause();
+      
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('catHighScore', highScore);
+      }
+      
+      document.getElementById('final-score').textContent = 'Your score: ' + score;
+      document.getElementById('high-score').textContent = 'High score: ' + highScore;
+      document.getElementById('game-over').style.display = 'block';
+      
+      if (soundEnabled) {
+        sounds.gameOver.currentTime = 0;
+        sounds.gameOver.play();
+      }
+      createConfetti(containerWidth/2, containerHeight/2, 15, true);
+    }
+    
+    // Event listeners
+    document.addEventListener('keydown', function(e) {
+      if (gameOver) return;
+      
+      aiPathfinding = false;
+      
+      switch(e.key) {
+        case 'ArrowUp':
+          if (direction !== 'down') nextDirection = 'up';
+          break;
+        case 'ArrowDown':
+          if (direction !== 'up') nextDirection = 'down';
+          break;
+        case 'ArrowLeft':
+          if (direction !== 'right') nextDirection = 'left';
+          break;
+        case 'ArrowRight':
+          if (direction !== 'left') nextDirection = 'right';
+          break;
+        case 'a':
+        case 'A':
+          aiPathfinding = !aiPathfinding;
+          break;
+      }
+    });
+    
+    document.getElementById('restart').addEventListener('click', initGame);
+    document.getElementById('play-again').addEventListener('click', initGame);
+    
+    document.getElementById('sound-toggle').addEventListener('click', function() {
+      soundEnabled = !soundEnabled;
+      this.textContent = soundEnabled ? '🔊' : '🔇';
+      
+      if (soundEnabled) {
+        sounds.background.play();
+      } else {
+        sounds.background.pause();
+      }
+    });
+    
+    // Start game
+    initGame();
+    
+    console.log("%c =^･ω･^= Meow! =^･ω･^=", "font-size: 20px; color: #ff6b9d;");
+    console.log("Press 'A' to toggle AI mode (for lazy cats)");
+  </script>
+</body>
+</html>
